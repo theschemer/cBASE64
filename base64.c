@@ -23,28 +23,28 @@ static const char base64en[] = {
 #define BASE64DE_LAST	'z'
 /* ASCII order for BASE 64 decode, -1 in unused character */
 static const signed char base64de[] = {
-	/* '+', ',', '-', '.', '/', '0', '1', '2', */ 
+	/* '+', ',', '-', '.', '/', '0', '1', '2', */
 	    62,  -1,  -1,  -1,  63,  52,  53,  54,
 
 	/* '3', '4', '5', '6', '7', '8', '9', ':', */
 	    55,  56,  57,  58,  59,  60,  61,  -1,
 
 	/* ';', '<', '=', '>', '?', '@', 'A', 'B', */
-	    -1,  -1,  -1,  -1,  -1,  -1,   0,   1, 
+	    -1,  -1,  -1,  -1,  -1,  -1,   0,   1,
 
 	/* 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', */
 	     2,   3,   4,   5,   6,   7,   8,   9,
 
-	/* 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', */ 
+	/* 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', */
 	    10,  11,  12,  13,  14,  15,  16,  17,
 
 	/* 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', */
 	    18,  19,  20,  21,  22,  23,  24,  25,
 
-	/* '[', '\', ']', '^', '_', '`', 'a', 'b', */ 
+	/* '[', '\', ']', '^', '_', '`', 'a', 'b', */
 	    -1,  -1,  -1,  -1,  -1,  -1,  26,  27,
 
-	/* 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', */ 
+	/* 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', */
 	    28,  29,  30,  31,  32,  33,  34,  35,
 
 	/* 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', */
@@ -54,8 +54,7 @@ static const signed char base64de[] = {
 	    44,  45,  46,  47,  48,  49,  50,  51,
 };
 
-int
-base64_encode(const unsigned char *in, unsigned int inlen, char *out)
+int base64_encode(const unsigned char *in, unsigned int inlen, char *out)
 {
 	unsigned int i, j;
 
@@ -91,21 +90,21 @@ base64_encode(const unsigned char *in, unsigned int inlen, char *out)
 	return BASE64_OK;
 }
 
-int
-base64_decode(const char *in, unsigned int inlen, unsigned char *out)
+int base64_decode(const char *in, unsigned int inlen, char *out)
 {
 	unsigned int i, j;
+	unsigned int len = 0;
 
 	for (i = j = 0; i < inlen; i++) {
 		int c;
 		int s = i % 4; 			/* from 8/gcd(6, 8) */
 
 		if (in[i] == '=')
-			return BASE64_OK;
+			return len;
 
 		if (in[i] < BASE64DE_FIRST || in[i] > BASE64DE_LAST ||
 		    (c = base64de[in[i] - BASE64DE_FIRST]) == -1)
-			return BASE64_INVALID;
+			return len;
 
 		switch (s) {
 		case 0:
@@ -113,23 +112,24 @@ base64_decode(const char *in, unsigned int inlen, unsigned char *out)
 			continue;
 		case 1:
 			out[j++] += ((unsigned int)c >> 4) & 0x3;
-
+            len++;
 			/* if not last char with padding */
 			if (i < (inlen - 3) || in[inlen - 2] != '=')
-				out[j] = ((unsigned int)c & 0xF) << 4; 
+				out[j] = ((unsigned int)c & 0xF) << 4;
 			continue;
 		case 2:
 			out[j++] += ((unsigned int)c >> 2) & 0xF;
-
+            len++;
 			/* if not last char with padding */
 			if (i < (inlen - 2) || in[inlen - 1] != '=')
 				out[j] =  ((unsigned int)c & 0x3) << 6;
 			continue;
 		case 3:
 			out[j++] += (unsigned char)c;
+            len++;
 		}
 	}
 
-	return BASE64_OK;
+	return len;
 }
 
