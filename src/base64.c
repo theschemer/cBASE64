@@ -2,7 +2,10 @@
 
 #include <stdio.h>
 
-#include "base64.h"
+enum {BASE64_INVALID = 0, BASE64_OK};
+
+#define BASE64_ENCODE_OUT_SIZE(s)	(((s) + 2) / 3 * 4)
+#define BASE64_DECODE_OUT_SIZE(s)	(((s)) / 4 * 3)
 
 /* BASE 64 encode table */
 static const char base64en[] = {
